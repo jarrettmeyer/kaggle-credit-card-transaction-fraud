@@ -16,6 +16,7 @@ def clean_dataset(df: pd.DataFrame) -> pd.DataFrame:
     clean["month"] = clean["timestamp"].dt.month
     clean["day"] = clean["timestamp"].dt.day
     clean["day_name"] = clean["timestamp"].dt.day_name()
+    clean["hour"] = clean["timestamp"].dt.hour
 
     # Get the date of birth year.
     clean["dob"] = pd.to_datetime(clean["dob"])
