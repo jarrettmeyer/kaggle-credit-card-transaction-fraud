@@ -1,9 +1,12 @@
 import re
 import pandas as pd
-from sklearn.preprocessing import LabelEncoder
 
 
 def clean_dataset(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Clean the dataset. This is created as a function so we can treat both the
+    train and test datasets exactly the same.
+    """
     clean = df.copy(deep=True)
 
     # Remove the leading `fraud_` from the merchant name.
@@ -23,28 +26,32 @@ def clean_dataset(df: pd.DataFrame) -> pd.DataFrame:
     clean["dob_year"] = clean["dob"].dt.year
 
     # Convert city and merchant lat/long into distances.
-    clean["lat_delta"] = abs(clean["lat"] - clean["merch_lat"])
-    clean["long_delta"] = abs(clean["long"] - clean["merch_long"])
+    clean["lat_delta"] = (clean["lat"] - clean["merch_lat"]).abs()
+    clean["long_delta"] = (clean["long"] - clean["merch_long"]).abs()
 
     # Drop unwanted columns.
-    clean = clean.drop(columns=[
-        "cc_num",
-        "city",
-        "dob",
-        "first",
-        "last",
-        "lat",
-        "long",
-        "merch_lat",
-        "merch_long",
-        "state",
-        "street",
-        "timestamp",
-        "trans_date_trans_time",
-        "trans_num",
-        "unix_time",
-        "zip",
-    ])
+    clean = clean.drop(
+        columns=[
+            "cc_num",
+            "city",
+            "dob",
+            "first",
+            "job",
+            "last",
+            "lat",
+            "long",
+            "merch_lat",
+            "merch_long",
+            "merchant",
+            "state",
+            "street",
+            "timestamp",
+            "trans_date_trans_time",
+            "trans_num",
+            "unix_time",
+            "zip",
+        ]
+    )
 
     # Return the clean data set.
     return clean
@@ -52,24 +59,15 @@ def clean_dataset(df: pd.DataFrame) -> pd.DataFrame:
 
 def encode_categories(df: pd.DataFrame) -> pd.DataFrame:
     encoded = df.copy(deep=True)
-
-    label_encoder = LabelEncoder()
-
-    columns_to_encode = [
-        "category",
-        "day_name",
-        "gender",
-        "job",
-        "merchant"
-    ]
-
-    for col in columns_to_encode:
-        encoded[col] = label_encoder.fit_transform(encoded[col])
-
+    categorical_columns = ["category", "day_name", "gender"]
+    encoded = pd.get_dummies(df, columns=categorical_columns)
     return encoded
 
 
 def get_data() -> tuple[pd.DataFrame, pd.DataFrame]:
+    """
+    Get the train and test datasets. Return the two data sets as a tuple.
+    """
     train = read_source_csv("../data/fraudTrain.csv")
     test = read_source_csv("../data/fraudTest.csv")
     return (train, test)
